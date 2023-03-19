@@ -6,7 +6,7 @@ import Model from "./Model";
 import { useSelector, useDispatch } from "react-redux";
 import {
   addProject,
-  addActiveProject,
+  selectActiveProject,
   addTask,
 } from "../reduxToolKit/projectSlice";
 
@@ -14,34 +14,28 @@ import { v4 as uuidv4 } from "uuid";
 
 const currentDate = new Date().toLocaleString(); // 11/16/2015, 11:18:48 PM
 
-const projectInitialState = {
-  id: "",
+const initialStateOfProject = {
   name: "",
   tasks: [],
   date: "",
 };
 
-const taskInitialState = {
-  id: "",
+const initialStateOfTask = {
   name: "",
   status: "pending",
   startTime: "",
   endTime: "",
-  date: "",
 };
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [task, setTask] = useState(taskInitialState);
-  const [project, setProject] = useState(projectInitialState);
+  const [task, setTask] = useState(initialStateOfTask);
+  const [project, setProject] = useState(initialStateOfProject);
 
-  const { projects, activeProjectId } = useSelector(state => state.taskTimer);
+  const { projects, selectedProjectID } = useSelector(state => state.taskTimer);
   const dispatch = useDispatch();
-
-  console.log(projects, activeProjectId, `use`);
-
-  console.log(task, `add task`);
-
+  console.log(projects, `project-in-header-store`);
+  console.log(project, `use-state-project`);
   // handle popup
   const handleShowModel = () => {
     setOpen(prevState => !prevState);
@@ -49,13 +43,16 @@ export default function Header() {
 
   // handle project
   const handleProject = (key, value) => {
-    setProject({ ...project, [key]: value, id: uuidv4(), date: currentDate });
+    setProject(pre => {
+      return { ...pre, [key]: value };
+    });
   };
 
   // handle task
   const handleTask = (key, value) => {
-    setTask({ ...task, [key]: value, id: uuidv4(), date: currentDate });
+    setTask({ ...task, [key]: value });
   };
+  console.log(task, `handle-task`);
 
   return (
     <>
@@ -74,11 +71,12 @@ export default function Header() {
             id=""
             className="w-[20rem]  rounded-sm  py-2 mx-[1rem]"
           >
-            {projects.map(({ payload }) => {
+            {projects.map(e => {
+              console.log(e, `project-in-header-selector`);
               return (
                 <>
-                  <option value="" key={payload.id}>
-                    {payload.name}
+                  <option value="" key={e.id}>
+                    {e.name}
                   </option>
                 </>
               );
@@ -112,17 +110,14 @@ export default function Header() {
                   id=""
                   className="min-w-full p-2"
                   onChange={e => {
-                    dispatch(addActiveProject(e.target.value));
+                    dispatch(selectActiveProject(e.target.value));
                   }}
                 >
-                  {projects.map(({ payload }) => {
-                    {
-                      console.log(payload, `add project`);
-                    }
+                  {projects.map(e => {
                     return (
                       <>
-                        <option key={payload.id} value={payload.id}>
-                          {payload.name}
+                        <option key={e.id} value={e.id}>
+                          {e.name}
                         </option>
                       </>
                     );
@@ -145,8 +140,14 @@ export default function Header() {
                   className="bg-sky-500 hover:bg-sky-700 rounded-sm px-[2rem] py-2 capitalize text-fuchsia-50"
                   onClick={() => {
                     if (project.name) {
-                      dispatch(addProject(project));
-                      setProject(projectInitialState);
+                      dispatch(
+                        addProject({
+                          id: uuidv4(),
+                          ...project,
+                          date: new Date().toLocaleString(),
+                        })
+                      );
+                      setProject(initialStateOfProject);
                     }
                   }}
                 >
@@ -164,13 +165,21 @@ export default function Header() {
                 placeholder="task name"
                 className="min-w-full my-2  p-2"
                 onChange={e => handleTask("name", e.target.value)}
+                value={task.name && task.name}
               />{" "}
               <br />
               <button
                 className="bg-sky-500 hover:bg-sky-700 rounded-sm px-[2rem] py-2  text-fuchsia-50"
                 onClick={() => {
                   if (task.name) {
-                    dispatch(addTask(task));
+                    dispatch(
+                      addTask({
+                        id: uuidv4(),
+                        ...task,
+                        date: new Date().toLocaleString(),
+                      })
+                    );
+                    setTask(initialStateOfTask);
                   }
                 }}
               >
