@@ -1,21 +1,18 @@
 /** @format */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { changeTaskTimerAndStatus } from "../reduxToolKit/projectSlice";
-const initialTaskStatus = "pending";
+// const initialTaskStatus = "pending";
+import Time from "./Time";
 
 export default function Table() {
   const { projects } = useSelector(state => state.taskTimer);
-  const [taskStatus, setTaskStatus] = useState(initialTaskStatus);
-
   const dispatch = useDispatch();
-
-  console.log(taskStatus, `task-status-in-table`);
 
   return (
     <div>
-      <table class="table table-condensed w-full">
+      <table className="table table-condensed w-full">
         <thead>
           <tr>
             <th>Project</th>
@@ -28,14 +25,16 @@ export default function Table() {
         <tbody>
           {/* project  row */}
           {projects.map(p => {
-            console.log(p, `p-in-table`);
+            {
+              /* console.log(p, `p-in-table`); */
+            }
             return (
               <>
                 <tr className="items-center bg-slate-200 ">
                   <td className="text-center ">{p.name}</td>
                   <td className="text-center   ">-</td>
-                  <td className="text-center ">{"Pending"}</td>
-                  <td className="text-center ">time</td>
+                  <td className="text-center "></td>
+                  <td className="text-center ">{<Time project={p} />}</td>
                   <td className="text-center ">{p.date}</td>
                 </tr>
                 {/* task row */}
@@ -43,6 +42,7 @@ export default function Table() {
                   ? p.tasks.map(t => {
                       const startTime = new Date(t?.startTime).getTime();
                       const endTime = new Date(t?.endTime).getTime();
+
                       console.log("startTime", startTime, endTime);
 
                       var milliseconds = Math.floor(
@@ -61,6 +61,7 @@ export default function Table() {
                       hours = hours < 10 ? "0" + hours : hours;
                       minutes = minutes < 10 ? "0" + minutes : minutes;
                       seconds = seconds < 10 ? "0" + seconds : seconds;
+
                       return (
                         <>
                           <tr className=" ">
@@ -75,21 +76,40 @@ export default function Table() {
                                   dispatch(
                                     changeTaskTimerAndStatus({
                                       status: e.target.value,
-                                      time: new Date(),
+                                      time: Date.now(),
                                       projectId: p.id,
                                       taskId: t.id,
                                     })
                                   );
                                 }}
                               >
-                                <option value={"pending"} disabled selected>
+                                <option
+                                  value={"pending"}
+                                  disabled
+                                  selected={t.status === "pending"}
+                                >
                                   pending
                                 </option>
-                                <option value={"start"}>start</option>
-                                <option value={"complete"}>complete</option>
+                                <option
+                                  value={"start"}
+                                  selected={t.status === "start"}
+                                  disabled={t.status === "complete"}
+                                >
+                                  start
+                                </option>
+                                <option
+                                  value={"complete"}
+                                  selected={t.status === "complete"}
+                                  disabled={t.status === "pending"}
+                                >
+                                  complete
+                                </option>
                               </select>
                             </td>
-                            <td className="text-center py-2">hh/mm/ss/ms</td>
+                            <td className="text-center py-2">{`${hours || 0}:${
+                              minutes || 0
+                            }:${seconds || 0}`}</td>
+
                             <td className="text-center py-2">{t.date}</td>
                           </tr>
                         </>

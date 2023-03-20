@@ -1,18 +1,18 @@
 /** @format */
 
 import React, { useState } from "react";
-
-import Model from "./Model";
 import { useSelector, useDispatch } from "react-redux";
+import Model from "./Model";
+import { v4 as uuidv4 } from "uuid";
+
 import {
   addProject,
   selectActiveProject,
   addTask,
+  deleteProject,
 } from "../reduxToolKit/projectSlice";
 
-import { v4 as uuidv4 } from "uuid";
-
-const currentDate = new Date().toLocaleString(); // 11/16/2015, 11:18:48 PM
+// 11/16/2015, 11:18:48 PM
 
 const initialStateOfProject = {
   name: "",
@@ -31,11 +31,11 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [task, setTask] = useState(initialStateOfTask);
   const [project, setProject] = useState(initialStateOfProject);
+  const [deleteID, setDeleteID] = useState(null);
 
   const { projects, selectedProjectID } = useSelector(state => state.taskTimer);
   const dispatch = useDispatch();
-  console.log(projects, `project-in-header-store`);
-  console.log(project, `use-state-project`);
+
   // handle popup
   const handleShowModel = () => {
     setOpen(prevState => !prevState);
@@ -47,12 +47,23 @@ export default function Header() {
       return { ...pre, [key]: value };
     });
   };
+  // delete project
+  const handleChangeDelete = value => {
+    console.log(value, `id-delete-change`);
+    setDeleteID(value);
+  };
+
+  const handleDeleteProject = () => {
+    if (deleteID) {
+      dispatch(deleteProject(deleteID));
+    }
+  };
 
   // handle task
   const handleTask = (key, value) => {
     setTask({ ...task, [key]: value });
   };
-  console.log(task, `handle-task`);
+  // console.log(task, `handle-task`);
 
   return (
     <>
@@ -70,12 +81,17 @@ export default function Header() {
             name=""
             id=""
             className="w-[20rem]  rounded-sm  py-2 mx-[1rem]"
+            onChange={e => {
+              handleChangeDelete(e.target.value);
+            }}
           >
+            <option value="" selected>
+              select project
+            </option>
             {projects.map(e => {
-              console.log(e, `project-in-header-selector`);
               return (
                 <>
-                  <option value="" key={e.id}>
+                  <option value={e.id} key={e.id}>
                     {e.name}
                   </option>
                 </>
@@ -85,7 +101,10 @@ export default function Header() {
         </div>
 
         <div>
-          <button className="bg-red-500  hover:bg-red-700 rounded-sm px-[2rem] py-2  text-fuchsia-50 capitalize">
+          <button
+            className="bg-red-500  hover:bg-red-700 rounded-sm px-[2rem] py-2  text-fuchsia-50 capitalize"
+            onClick={handleDeleteProject}
+          >
             delete project
           </button>
         </div>
@@ -113,6 +132,9 @@ export default function Header() {
                     dispatch(selectActiveProject(e.target.value));
                   }}
                 >
+                  <option value="" selected disabled>
+                    select project
+                  </option>
                   {projects.map(e => {
                     return (
                       <>
@@ -169,6 +191,7 @@ export default function Header() {
               />{" "}
               <br />
               <button
+                key={uuidv4()}
                 className="bg-sky-500 hover:bg-sky-700 rounded-sm px-[2rem] py-2  text-fuchsia-50"
                 onClick={() => {
                   if (task.name) {

@@ -14,6 +14,7 @@ export const projectSlice = createSlice({
     addProject: (state, action) => {
       const { payload } = action;
       // console.log(payload, `add-project-payload`);
+
       state.projects = [...state.projects, { ...payload }];
       if (!state.selectedProjectID) {
         state.selectedProjectID = payload.id;
@@ -26,13 +27,18 @@ export const projectSlice = createSlice({
       state.selectedProjectID = payload;
     },
 
+    deleteProject: (state, action) => {
+      const { payload } = action;
+      state.projects = state.projects.filter(p => p.id !== payload);
+    },
+
     addTask: (state, action) => {
       const { payload } = action;
 
       const updatedState = state.projects.map(e => {
         // console.log(e, payload, `project-in-task`);
         if (e.id === state.selectedProjectID) {
-          e.tasks = [...e.tasks, { ...payload }];
+          e.tasks = [...e.tasks, { ...payload, projectId: e.id }];
         }
         return e;
       });
@@ -78,6 +84,7 @@ export const {
   selectActiveProject,
   addTask,
   changeTaskTimerAndStatus,
+  deleteProject,
 } = projectSlice.actions;
 
 export default projectSlice.reducer;
